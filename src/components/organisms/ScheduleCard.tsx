@@ -1,28 +1,9 @@
 import { TimetableItemType, TimetableType } from "@/types/TimetableTypes";
 import Card from "../atoms/wrappers/Card";
 import { useEffect, useRef, useState } from "react";
-import {
-  Lexend,
-  Lora,
-  Lato,
-  Akatab,
-  Libre_Baskerville,
-  Karla,
-  Spectral,
-  AR_One_Sans,
-} from "next/font/google";
+import { Spectral } from "next/font/google";
 
-const lexend = Lexend({ subsets: ["latin"], weight: ["300", "400", "600"] });
-const lora = Lora({ subsets: ["latin"], weight: ["400", "600"] });
-const lato = Lato({ subsets: ["latin"], weight: ["400", "700"] });
-const akatab = Akatab({ subsets: ["latin"], weight: ["400"] });
-const libreBaskerville = Libre_Baskerville({
-  subsets: ["latin"],
-  weight: ["400"],
-});
-const karla = Karla({ subsets: ["latin"], weight: ["400", "700"] });
 const spectral = Spectral({ subsets: ["latin"], weight: ["400", "600"] });
-const arOneSans = AR_One_Sans({ subsets: ["latin"], weight: ["400"] });
 
 export default function ScheduleCard(props: { timetable: TimetableType }) {
   // refs
@@ -47,8 +28,7 @@ export default function ScheduleCard(props: { timetable: TimetableType }) {
 
   function getCurrentHour() {
     const date = new Date();
-    // const hour = date.getHours().toString().padStart(2, "0");
-    const hour = (8).toString().padStart(2, "0");
+    const hour = date.getHours().toString().padStart(2, "0");
     const minute = date.getMinutes().toString().padStart(2, "0");
     setCurrentHour(`${hour}:${minute}`);
   }
