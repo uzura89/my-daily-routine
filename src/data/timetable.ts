@@ -97,7 +97,7 @@ export const timetable: TimetableType = {
       color: ITEM_COLOR_PINK,
     },
     {
-      name: "Brain Dump & Reading",
+      name: "Diary & Reading",
       memo: "Check long-term goals & plan for tomorrow, read books",
       start: "21:00",
       end: "23:00",
