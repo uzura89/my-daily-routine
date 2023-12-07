@@ -77,7 +77,7 @@ export const timetable: TimetableType = {
     },
     {
       name: "Dinner",
-      memo: "Cook while listening to radio",
+      memo: "Cook healthy meal",
       start: "17:30",
       end: "19:00",
       color: ITEM_COLOR_ORANGE,
@@ -90,7 +90,7 @@ export const timetable: TimetableType = {
       color: ITEM_COLOR_YELLOW,
     },
     {
-      name: "Herb Tea",
+      name: "Herbal Tea",
       memo: "Put away electronic devices",
       start: "20:30",
       end: "21:00",
