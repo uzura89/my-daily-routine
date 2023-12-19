@@ -9,7 +9,7 @@ export async function GET() {
       timetable.quotes.length > 1
         ? timetable.quotes[Math.floor(Math.random() * timetable.quotes.length)]
         : timetable.quotes[0];
-    if (!quote.author || !quote.quote) {
+    if (!quote.author || !quote.quote || quote?.quote === "") {
       quote = await getRandomQuote();
     }
   } else {
