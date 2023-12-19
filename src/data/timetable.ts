@@ -11,6 +11,21 @@ const ITEM_COLOR_BLUE = "#cce4fc";
 
 export const timetable: TimetableType = {
   name: "Daily Routine",
+  /* 
+  leave the quotes blank
+  or remove the quotes 
+  for random stoic quotes,
+  add one or more to cycle 
+  between your own quotes
+  */
+  quotes: [
+    {
+      quote:
+        "Motivation is what gets you started. Habit is what keeps you going",
+      author: "Aristotle",
+    },
+  ],
+
   items: [
     {
       name: "Sleep",
