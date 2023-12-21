@@ -1,4 +1,3 @@
-import { TimetableType } from "@/types/TimetableTypes";
 import Container from "../atoms/wrappers/Container";
 
 import { IMG_BRAND_MARK } from "@/constants/img.cons";
@@ -6,10 +5,11 @@ import Image from "next/image";
 import { Akatab } from "next/font/google";
 import { ScheduleCard } from "../organisms/ScheduleCard";
 import { FC } from "react";
+import { ConfigType } from "@/types/ConfigTypes";
 
 const akatab = Akatab({ subsets: ["latin"], weight: ["400"] });
 
-export const ScheduleTemplate: FC<{ timetable: TimetableType }> = (props) => {
+export const ScheduleTemplate: FC<{ config: ConfigType }> = (props) => {
   return (
     <Container>
       {/* Brandicon */}
@@ -28,13 +28,13 @@ export const ScheduleTemplate: FC<{ timetable: TimetableType }> = (props) => {
       {/* Title */}
       <div className="flex items-center justify-center mt-1 mb-6">
         <h1 className={`text-[#000000] opacity-70 text-md ${akatab.className}`}>
-          {props.timetable.name}
+          {props.config.name}
         </h1>
       </div>
 
       {/* Schedle */}
       <div className={`mt-2 mb-10`}>
-        <ScheduleCard timetable={props.timetable} />
+        <ScheduleCard timetable={props.config.timetable} />
       </div>
     </Container>
   );

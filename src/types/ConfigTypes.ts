@@ -6,10 +6,12 @@ export type TimetableItemType = {
   color: string;
 };
 
-export type TimetableType = {
+export type TimetableType = TimetableItemType[];
+
+export type ConfigType = {
   name: string;
-  items: TimetableItemType[];
   quotes?: QuoteType[];
+  timetable: TimetableItemType[];
 };
 
 export type QuoteType = {

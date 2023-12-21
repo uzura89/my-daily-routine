@@ -1,4 +1,4 @@
-import { TimetableType, TimetableItemType } from "@/types/TimetableTypes";
+import { TimetableType, TimetableItemType } from "@/types/ConfigTypes";
 import { FC, useEffect, useRef, useState } from "react";
 
 const HOUR_HEIGHT = 60; // (1 hour = 60px)
@@ -161,7 +161,7 @@ function TimetableData(props: {
         left: props.labelWidth,
       }}
     >
-      {props.timetable.items.map((item, index) => {
+      {props.timetable.map((item, index) => {
         return (
           <TimetableItem key={index} item={item} rowHeight={props.rowHeight} />
         );

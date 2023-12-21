@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import { Spectral } from "next/font/google";
-import { QuoteType } from "@/types/TimetableTypes";
+import { QuoteType } from "@/types/ConfigTypes";
 
 const spectral = Spectral({ subsets: ["latin"], weight: ["400", "600"] });
 

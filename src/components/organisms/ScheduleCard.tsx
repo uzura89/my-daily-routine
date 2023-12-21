@@ -1,8 +1,8 @@
-import { TimetableType } from "@/types/TimetableTypes";
 import Card from "../atoms/wrappers/Card";
 import { FC } from "react";
 import { Quote } from "../molecules/Quote";
 import { Schedule } from "../molecules/Schedule";
+import { TimetableType } from "@/types/ConfigTypes";
 
 export const ScheduleCard: FC<{ timetable: TimetableType }> = (props) => {
   return (

@@ -1,8 +1,8 @@
 "use client";
 
 import { ScheduleTemplate } from "@/components/templates/ScheduleTemplate";
-import { timetable } from "@/data/timetable";
+import { config } from "@/data/config";
 
 export default function Home() {
-  return <ScheduleTemplate timetable={timetable} />;
+  return <ScheduleTemplate config={config} />;
 }
