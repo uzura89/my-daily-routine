@@ -11,7 +11,7 @@
   --border-rgb: 233, 226, 176;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 97, 95, 82;
     --foreground-light-rgb: 146, 138, 76;
@@ -20,7 +20,7 @@
     --background-light-rgb: 248, 248, 243;
     --border-rgb: 233, 226, 176;
   }
-}
+} */
 
 body {
   color: rgb(var(--foreground-rgb));

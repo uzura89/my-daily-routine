@@ -1,13 +1,15 @@
 import { TimetableType } from "@/types/TimetableTypes";
 import Container from "../atoms/wrappers/Container";
-import ScheduleCard from "../organisms/ScheduleCard";
+
 import { IMG_BRAND_MARK } from "@/constants/img.cons";
 import Image from "next/image";
 import { Akatab } from "next/font/google";
+import { ScheduleCard } from "../organisms/ScheduleCard";
+import { FC } from "react";
 
 const akatab = Akatab({ subsets: ["latin"], weight: ["400"] });
 
-export default function ScheduleTemplate(props: { timetable: TimetableType }) {
+export const ScheduleTemplate: FC<{ timetable: TimetableType }> = (props) => {
   return (
     <Container>
       {/* Brandicon */}
@@ -36,4 +38,4 @@ export default function ScheduleTemplate(props: { timetable: TimetableType }) {
       </div>
     </Container>
   );
-}
+};

@@ -30,8 +30,8 @@ export const Quote: FC = () => {
       <div className={`p-5 flex flex-col gap-1`}>
         <div className="animate-pulse flex space-x-4">
           <div className="flex-1 space-y-4 py-1">
-            <div className="h-4 bg-gray-200 rounded w-3/4" />
-            <div className="h-4 bg-gray-200 rounded w-2/4" />
+            <div className="h-3 bg-gray-200 rounded w-3/4" />
+            <div className="h-3 bg-gray-200 rounded w-1/4" />
           </div>
         </div>
       </div>
