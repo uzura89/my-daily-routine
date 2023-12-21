@@ -9,4 +9,10 @@ export type TimetableItemType = {
 export type TimetableType = {
   name: string;
   items: TimetableItemType[];
+  quotes?: QuoteType[];
+};
+
+export type QuoteType = {
+  quote: string;
+  author: string;
 };

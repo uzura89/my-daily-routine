@@ -1,9 +1,8 @@
 import { TimetableItemType, TimetableType } from "@/types/TimetableTypes";
 import Card from "../atoms/wrappers/Card";
 import { useEffect, useRef, useState } from "react";
-import { Spectral } from "next/font/google";
+import { Quote } from "../atoms/wrappers/Quote";
 
-const spectral = Spectral({ subsets: ["latin"], weight: ["400", "600"] });
 
 export default function ScheduleCard(props: { timetable: TimetableType }) {
   // refs
@@ -58,17 +57,7 @@ export default function ScheduleCard(props: { timetable: TimetableType }) {
     <Card noPadding>
       <div className="pb-6">
         {/* Header */}
-        <div className="">
-          <div className={`p-5 flex flex-col gap-1 ${spectral.className}`}>
-            <div className="text-sm text-[#63634a]">
-              “Motivation is what gets you started. Habit is what keeps you
-              going.”
-            </div>
-            <div className="font-semibold text-sm text-foreLight">
-              Aristotle
-            </div>
-          </div>
-        </div>
+        <Quote />
 
         {/* Schedule */}
         <div
