@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { config } from "@/data/config";
 import { QuoteType } from "@/types/ConfigTypes";
 
@@ -19,8 +20,12 @@ export async function GET() {
 }
 
 async function getRandomQuote(): Promise<QuoteType> {
-  let response = await fetch("https://stoic-quotes.com/api/quote");
-  let data = await response.json();
+  const response = await fetch("https://stoic-quotes.com/api/quote", {
+    cache: "no-cache",
+  });
+
+  const data = await response.json();
+
   return {
     quote: data.text,
     author: data.author,
