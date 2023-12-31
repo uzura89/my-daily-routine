@@ -4,27 +4,22 @@ import { config } from "@/data/config";
 import { QuoteType } from "@/types/ConfigTypes";
 
 export async function GET(req: Request) {
-  try {
-    // get dateStr from query params
-    const params = new URL(req.url).searchParams;
-    const dateStr = params.get("dateStr");
+  // get dateStr from query params
+  const params = new URL(req.url).searchParams;
+  const dateStr = params.get("dateStr");
 
-    if (!dateStr) {
-      throw new Error("No dateStr provided");
-    }
-
-    const quote = await getQuoteForTheDay(dateStr);
-
-    if (!quote) {
-      throw new Error("No quote found");
-    }
-
-    // return quote
-    return NextResponse.json(quote);
-  } catch (error) {
-    // return error
-    return NextResponse.error();
+  if (!dateStr) {
+    throw new Error("No dateStr provided");
   }
+
+  const quote = await getQuoteForTheDay(dateStr);
+
+  if (!quote) {
+    throw new Error("No quote found");
+  }
+
+  // return quote
+  return NextResponse.json(quote);
 }
 
 async function getQuoteForTheDay(dateStr: string): Promise<QuoteType | null> {
