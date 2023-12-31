@@ -1,6 +1,7 @@
 import { FC, useState, useEffect } from "react";
 import { Spectral } from "next/font/google";
 import { QuoteType } from "@/types/ConfigTypes";
+import { convertDateToDateStr } from "@/modules/date/convertDateToDateStr";
 
 const spectral = Spectral({ subsets: ["latin"], weight: ["400", "600"] });
 
@@ -11,7 +12,8 @@ export const Quote: FC = () => {
   useEffect(() => {
     const fetchQuote = async () => {
       try {
-        const response = await fetch("/api/quote");
+        const dateStr = convertDateToDateStr(new Date());
+        const response = await fetch(`/api/quote?dateStr=${dateStr}`);
         if (!response.ok) {
           throw new Error("Error fetching quote");
         }
