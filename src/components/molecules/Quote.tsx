@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, cache } from "react";
 import { Spectral } from "next/font/google";
 import { QuoteType } from "@/types/ConfigTypes";
 

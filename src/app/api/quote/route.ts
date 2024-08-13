@@ -20,9 +20,7 @@ export async function GET() {
 }
 
 async function getRandomQuote(): Promise<QuoteType> {
-  const response = await fetch("https://stoic-quotes.com/api/quote", {
-    cache: "no-cache",
-  });
+  const response = await fetch("https://stoic-quotes.com/api/quote");
 
   const data = await response.json();
 
@@ -31,3 +29,6 @@ async function getRandomQuote(): Promise<QuoteType> {
     author: data.author,
   };
 }
+
+// this line is needed to make the quote random
+export const dynamic = "force-dynamic";
