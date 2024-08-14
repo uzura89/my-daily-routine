@@ -3,13 +3,6 @@ import * as color from "@/constants/itemcolor.cons";
 
 export const config: ConfigType = {
   name: "Daily Routine",
-  /* 
-  leave the quotes blank
-  or remove the quotes 
-  for random stoic quotes,
-  add one or more to cycle 
-  between your own quotes
-  */
   quotes: [
     // {
     //   quote:
@@ -51,46 +44,32 @@ export const config: ConfigType = {
       name: "家で仕事",
       memo: "",
       start: "09:00",
-      end: "11:00",
+      end: "12:00",
       color: color.ITEM_COLOR_CYAN,
     },
     {
-      name: "移動",
+      name: "移動、昼食",
       memo: "",
-      start: "11:00",
-      end: "11:30",
-      color: color.ITEM_COLOR_GRAY,
-    },
-    {
-      name: "カフェで仕事",
-      memo: "",
-      start: "11:30",
+      start: "12:00",
       end: "13:00",
-      color: color.ITEM_COLOR_CYAN,
-    },
-    {
-      name: "昼食、移動",
-      memo: "",
-      start: "13:00",
-      end: "14:00",
       color: color.ITEM_COLOR_ORANGE,
     },
     {
-      name: "コワークで仕事",
+      name: "渋谷で仕事",
       memo: "",
-      start: "14:00",
+      start: "13:00",
       end: "17:00",
       color: color.ITEM_COLOR_CYAN,
     },
     {
-      name: "帰宅、娯楽",
+      name: "帰宅",
       memo: "",
       start: "17:00",
       end: "18:00",
       color: color.ITEM_COLOR_GRAY,
     },
     {
-      name: "風呂読書",
+      name: "G、風呂",
       memo: "",
       start: "18:00",
       end: "19:00",
@@ -104,7 +83,7 @@ export const config: ConfigType = {
       color: color.ITEM_COLOR_ORANGE,
     },
     {
-      name: "ハーブティ、明日の予定",
+      name: "ハーブティー、明日の予定",
       memo: "",
       start: "20:30",
       end: "21:00",
@@ -114,22 +93,29 @@ export const config: ConfigType = {
       name: "重い読書",
       memo: "",
       start: "21:00",
-      end: "22:00",
+      end: "22:30",
       color: color.ITEM_COLOR_GREEN,
     },
     {
-      name: "YouTube、Twitter",
+      name: "YouTube",
       memo: "",
-      start: "22:00",
+      start: "22:30",
       end: "23:00",
       color: color.ITEM_COLOR_YELLOW,
     },
     {
-      name: "就寝準備",
-      memo: "歯磨き・ヨガ・ベッドで軽い読書",
+      name: "歯磨き、瞑想、ベッドで軽い読書",
+      memo: "",
       start: "23:00",
-      end: "24:00",
+      end: "23:30",
       color: color.ITEM_COLOR_BLUE,
+    },
+    {
+      name: "ボディスキャン、就寝",
+      memo: "",
+      start: "23:30",
+      end: "00:00",
+      color: color.ITEM_COLOR_PURPLE,
     },
   ],
 };
