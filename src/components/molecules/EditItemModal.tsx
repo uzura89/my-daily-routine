@@ -19,6 +19,12 @@ const COLOR_SWATCHES = [
 const DURATION_MINUTE_STEP = 5;
 const DAY_MIN = 24 * 60;
 
+const HOUR_OPTIONS = Array.from({ length: 25 }, (_, i) => i);
+const MINUTE_OPTIONS = Array.from(
+  { length: Math.ceil(60 / DURATION_MINUTE_STEP) },
+  (_, i) => i * DURATION_MINUTE_STEP
+);
+
 export type EditItemModalProps = {
   isNew: boolean;
   initial: Omit<TimetableItemType, "id">;
@@ -51,6 +57,12 @@ export const EditItemModal: FC<EditItemModalProps> = (props) => {
   }, [props]);
 
   const totalMinutes = hours * 60 + minutes;
+
+  const minuteOptions = useMemo(() => {
+    const set = new Set<number>(MINUTE_OPTIONS);
+    set.add(minutes);
+    return Array.from(set).sort((a, b) => a - b);
+  }, [minutes]);
 
   const previewEndLabel = useMemo(() => {
     if (!isValidTime(start) || totalMinutes <= 0) return null;
@@ -146,31 +158,29 @@ export const EditItemModal: FC<EditItemModalProps> = (props) => {
             </Field>
             <Field label="Duration" className="flex-1">
               <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  min={0}
-                  max={24}
-                  step={1}
+                <select
                   value={hours}
-                  onChange={(e) =>
-                    setHours(clamp(parseInt(e.target.value || "0", 10), 0, 24))
-                  }
-                  className="w-14 bg-white border border-border rounded px-2 py-1.5 text-sm text-fore outline-none focus:border-foreLight"
-                />
+                  onChange={(e) => setHours(parseInt(e.target.value, 10))}
+                  className="bg-white border border-border rounded px-2 py-1.5 text-sm text-fore outline-none focus:border-foreLight"
+                >
+                  {HOUR_OPTIONS.map((h) => (
+                    <option key={h} value={h}>
+                      {h}
+                    </option>
+                  ))}
+                </select>
                 <span className="text-xs text-foreLight">h</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={59}
-                  step={DURATION_MINUTE_STEP}
+                <select
                   value={minutes}
-                  onChange={(e) =>
-                    setMinutes(
-                      clamp(parseInt(e.target.value || "0", 10), 0, 59)
-                    )
-                  }
-                  className="w-14 bg-white border border-border rounded px-2 py-1.5 text-sm text-fore outline-none focus:border-foreLight"
-                />
+                  onChange={(e) => setMinutes(parseInt(e.target.value, 10))}
+                  className="bg-white border border-border rounded px-2 py-1.5 text-sm text-fore outline-none focus:border-foreLight"
+                >
+                  {minuteOptions.map((m) => (
+                    <option key={m} value={m}>
+                      {m.toString().padStart(2, "0")}
+                    </option>
+                  ))}
+                </select>
                 <span className="text-xs text-foreLight">m</span>
               </div>
             </Field>
@@ -267,9 +277,4 @@ function toMin(t: string): number {
 
 function toInputTime(t: string): string {
   return t === "24:00" ? "23:59" : t;
-}
-
-function clamp(n: number, lo: number, hi: number): number {
-  if (Number.isNaN(n)) return lo;
-  return Math.max(lo, Math.min(hi, n));
 }

@@ -25,7 +25,7 @@ function buildSeedState(): BoardsStateType {
   const seedBoard: BoardType = {
     id: seedBoardId,
     name: config.name || "Daily Routine",
-    timetable: config.timetable.map((item) => ({ ...item, id: generateId() })),
+    timetable: [],
   };
   return {
     boards: [seedBoard],

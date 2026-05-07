@@ -1,7 +1,19 @@
 "use client";
 
 import { TimetableType, TimetableItemType } from "@/types/ConfigTypes";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
+import {
+  DndContext,
+  DragCancelEvent,
+  DragEndEvent,
+  DragMoveEvent,
+  DragStartEvent,
+  MouseSensor,
+  TouchSensor,
+  useDraggable,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import {
   durationMinutes,
   minutesToTime,
@@ -13,7 +25,7 @@ const HOUR_HEIGHT = 60; // 1 hour = 60px
 const LABEL_WIDTH = 60; // width of time label
 const SNAP_MINUTES = 15;
 const LONG_PRESS_MS = 350;
-const MOVE_CANCEL_PX = 8;
+const MOVE_TOLERANCE = 8;
 const DAY_MIN = 24 * 60;
 
 export type ScheduleProps = {
@@ -33,6 +45,23 @@ export const Schedule: FC<ScheduleProps> = (props) => {
     id: string;
     startMin: number;
   } | null>(null);
+
+  const itemsById = useMemo(() => {
+    const map = new Map<string, TimetableItemType>();
+    for (const i of props.timetable) map.set(i.id, i);
+    return map;
+  }, [props.timetable]);
+
+  // Long-press to activate drag, with movement tolerance during the hold.
+  // Same constraint for mouse and touch keeps desktop and mobile UX consistent.
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: { delay: LONG_PRESS_MS, tolerance: MOVE_TOLERANCE },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: LONG_PRESS_MS, tolerance: MOVE_TOLERANCE },
+    })
+  );
 
   function calcWholeWidth() {
     if (timetableSheetRef.current) {
@@ -69,34 +98,74 @@ export const Schedule: FC<ScheduleProps> = (props) => {
     props.onCreateAt(minutesToTime(clamped));
   }
 
+  function computeDraggedStart(itemId: string, deltaY: number): number | null {
+    const item = itemsById.get(itemId);
+    if (!item) return null;
+    const storedStart = timeToMinutes(item.start);
+    const proposedMin = storedStart + (deltaY / HOUR_HEIGHT) * 60;
+    return wrapMinutes(snap(proposedMin, SNAP_MINUTES));
+  }
+
+  function onDragStart(e: DragStartEvent) {
+    const item = itemsById.get(String(e.active.id));
+    if (!item) return;
+    setDragGhostStart({ id: item.id, startMin: timeToMinutes(item.start) });
+  }
+
+  function onDragMove(e: DragMoveEvent) {
+    const id = String(e.active.id);
+    const newStart = computeDraggedStart(id, e.delta.y);
+    if (newStart === null) return;
+    setDragGhostStart({ id, startMin: newStart });
+  }
+
+  function onDragEnd(e: DragEndEvent) {
+    const id = String(e.active.id);
+    const newStart = computeDraggedStart(id, e.delta.y);
+    if (newStart !== null) {
+      props.onMoveItem(id, minutesToTime(newStart));
+    }
+    setDragGhostStart(null);
+  }
+
+  function onDragCancel(_: DragCancelEvent) {
+    setDragGhostStart(null);
+  }
+
   return (
-    <div
-      ref={timetableSheetRef}
-      className="relative"
-      style={{ height: HOUR_HEIGHT * 24 }}
+    <DndContext
+      sensors={sensors}
+      onDragStart={onDragStart}
+      onDragMove={onDragMove}
+      onDragEnd={onDragEnd}
+      onDragCancel={onDragCancel}
     >
-      <TimetableSheetBlank
-        labelWidth={LABEL_WIDTH}
-        rowHeight={HOUR_HEIGHT}
-        onBlankClick={handleBlankClick}
-      />
+      <div
+        ref={timetableSheetRef}
+        className="relative"
+        style={{ height: HOUR_HEIGHT * 24 }}
+      >
+        <TimetableSheetBlank
+          labelWidth={LABEL_WIDTH}
+          rowHeight={HOUR_HEIGHT}
+          onBlankClick={handleBlankClick}
+        />
 
-      <TimetableData
-        labelWidth={LABEL_WIDTH}
-        rowHeight={HOUR_HEIGHT}
-        timetable={props.timetable}
-        dragOverride={dragGhostStart}
-        onEditItem={props.onEditItem}
-        onMoveItem={props.onMoveItem}
-        onDragGhostChange={setDragGhostStart}
-      />
+        <TimetableData
+          labelWidth={LABEL_WIDTH}
+          rowHeight={HOUR_HEIGHT}
+          timetable={props.timetable}
+          dragOverride={dragGhostStart}
+          onEditItem={props.onEditItem}
+        />
 
-      <CurrentTimeLine
-        labelWidth={LABEL_WIDTH}
-        rowHeight={HOUR_HEIGHT}
-        currentHour={currentHour}
-      />
-    </div>
+        <CurrentTimeLine
+          labelWidth={LABEL_WIDTH}
+          rowHeight={HOUR_HEIGHT}
+          currentHour={currentHour}
+        />
+      </div>
+    </DndContext>
   );
 };
 
@@ -169,10 +238,6 @@ function TimetableData(props: {
   timetable: TimetableType;
   dragOverride: { id: string; startMin: number } | null;
   onEditItem: (item: TimetableItemType) => void;
-  onMoveItem: (id: string, newStart: string) => void;
-  onDragGhostChange: (
-    g: { id: string; startMin: number } | null
-  ) => void;
 }) {
   return (
     <div
@@ -190,8 +255,6 @@ function TimetableData(props: {
               : null
           }
           onEditItem={props.onEditItem}
-          onMoveItem={props.onMoveItem}
-          onDragGhostChange={props.onDragGhostChange}
         />
       ))}
     </div>
@@ -216,16 +279,14 @@ function TimetableItem(props: {
   rowHeight: number;
   dragOverrideStartMin: number | null;
   onEditItem: (item: TimetableItemType) => void;
-  onMoveItem: (id: string, newStart: string) => void;
-  onDragGhostChange: (
-    g: { id: string; startMin: number } | null
-  ) => void;
 }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: props.item.id,
+  });
+
   const storedStartMin = timeToMinutes(props.item.start);
   const duration = durationMinutes(props.item.start, props.item.end);
 
-  // While dragging, render at the drag-target position so the item visibly
-  // tracks the pointer. Grab-offset math still uses the stored start.
   const effectiveStart =
     props.dragOverrideStartMin !== null
       ? props.dragOverrideStartMin
@@ -235,191 +296,62 @@ function TimetableItem(props: {
     effectiveEndRaw <= DAY_MIN ? effectiveEndRaw : effectiveEndRaw - DAY_MIN;
   const segments = itemSegments(effectiveStart, effectiveEnd);
 
-  // Outer wrapper covering the data column. Used as the reference for
-  // converting clientY → minutes during drag.
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  const stateRef = useRef<{
-    pointerId: number | null;
-    pressTimer: ReturnType<typeof setTimeout> | null;
-    capturedEl: HTMLElement | null;
-    startX: number;
-    startY: number;
-    grabOffsetMin: number;
-    dragging: boolean;
-    moved: boolean;
-  }>({
-    pointerId: null,
-    pressTimer: null,
-    capturedEl: null,
-    startX: 0,
-    startY: 0,
-    grabOffsetMin: 0,
-    dragging: false,
-    moved: false,
-  });
-
-  const [isDragging, setIsDragging] = useState(false);
-
-  function clearTimer() {
-    if (stateRef.current.pressTimer) {
-      clearTimeout(stateRef.current.pressTimer);
-      stateRef.current.pressTimer = null;
+  // Suppress the synthetic click that fires after a drag releases.
+  const justDraggedRef = useRef(false);
+  useEffect(() => {
+    if (isDragging) {
+      justDraggedRef.current = true;
+    } else if (justDraggedRef.current) {
+      const t = setTimeout(() => {
+        justDraggedRef.current = false;
+      }, 200);
+      return () => clearTimeout(t);
     }
-  }
+  }, [isDragging]);
 
-  function commitDrag(commitStartMin: number | null) {
-    const s = stateRef.current;
-    if (s.dragging && commitStartMin !== null) {
-      const snapped = wrapMinutes(snap(commitStartMin, SNAP_MINUTES));
-      props.onMoveItem(props.item.id, minutesToTime(snapped));
-    }
-    s.dragging = false;
-    s.pointerId = null;
-    s.moved = false;
-    s.capturedEl = null;
-    setIsDragging(false);
-    props.onDragGhostChange(null);
-  }
-
-  function clientYToAbsMin(clientY: number): number | null {
-    const parentRect = wrapperRef.current?.getBoundingClientRect();
-    if (!parentRect) return null;
-    return ((clientY - parentRect.top) / props.rowHeight) * 60;
-  }
-
-  function onPointerDown(
-    e: React.PointerEvent<HTMLDivElement>,
-    segment: Segment
-  ) {
-    if (e.button !== undefined && e.button !== 0) return;
-    const s = stateRef.current;
-    s.pointerId = e.pointerId;
-    s.startX = e.clientX;
-    s.startY = e.clientY;
-    s.moved = false;
-    s.dragging = false;
-    s.capturedEl = e.currentTarget;
-
-    // grab offset within the item, in minutes (handles wrap by using
-    // duration along the item's timeline, not raw clock time).
-    const abs = clientYToAbsMin(e.clientY);
-    if (abs === null) {
-      s.grabOffsetMin = 0;
-    } else if (segment.isHead) {
-      s.grabOffsetMin = Math.max(0, abs - storedStartMin);
-    } else {
-      s.grabOffsetMin = DAY_MIN - storedStartMin + Math.max(0, abs);
-    }
-
-    clearTimer();
-    s.pressTimer = setTimeout(() => {
-      if (stateRef.current.pointerId !== e.pointerId) return;
-      stateRef.current.dragging = true;
-      setIsDragging(true);
-      try {
-        stateRef.current.capturedEl?.setPointerCapture(e.pointerId);
-      } catch {}
-      props.onDragGhostChange({ id: props.item.id, startMin: storedStartMin });
-    }, LONG_PRESS_MS);
-  }
-
-  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    const s = stateRef.current;
-    if (s.pointerId !== e.pointerId) return;
-
-    if (!s.dragging) {
-      const dx = Math.abs(e.clientX - s.startX);
-      const dy = Math.abs(e.clientY - s.startY);
-      if (dx + dy > MOVE_CANCEL_PX) {
-        s.moved = true;
-        clearTimer();
-      }
-      return;
-    }
-
-    e.preventDefault();
-    const abs = clientYToAbsMin(e.clientY);
-    if (abs === null) return;
-    const proposed = wrapMinutes(abs - s.grabOffsetMin);
-    props.onDragGhostChange({
-      id: props.item.id,
-      startMin: snap(proposed, SNAP_MINUTES) % DAY_MIN,
-    });
-  }
-
-  function onPointerUp(e: React.PointerEvent<HTMLDivElement>) {
-    const s = stateRef.current;
-    if (s.pointerId !== e.pointerId) return;
-    clearTimer();
-
-    if (s.dragging) {
-      const abs = clientYToAbsMin(e.clientY);
-      const newStart = abs === null ? null : abs - s.grabOffsetMin;
-      try {
-        s.capturedEl?.releasePointerCapture(e.pointerId);
-      } catch {}
-      commitDrag(newStart);
-    } else if (!s.moved) {
-      props.onEditItem(props.item);
-      s.pointerId = null;
-      s.capturedEl = null;
-    } else {
-      s.pointerId = null;
-      s.capturedEl = null;
-    }
-  }
-
-  function onPointerCancel(e: React.PointerEvent<HTMLDivElement>) {
-    const s = stateRef.current;
-    clearTimer();
-    if (s.dragging) {
-      try {
-        s.capturedEl?.releasePointerCapture(e.pointerId);
-      } catch {}
-    }
-    commitDrag(null);
+  function handleClick() {
+    if (justDraggedRef.current) return;
+    props.onEditItem(props.item);
   }
 
   return (
-    <div ref={wrapperRef} className="absolute inset-0 pointer-events-none">
+    <div className="absolute inset-0 pointer-events-none">
       {segments.map((seg, idx) => {
         const segY = (seg.startMin / 60) * props.rowHeight;
         const segH = ((seg.endMin - seg.startMin) / 60) * props.rowHeight;
         const isOnly = segments.length === 1;
+        const isHead = seg.isHead;
         return (
           <div
             key={idx}
+            ref={isHead ? setNodeRef : undefined}
+            {...(isHead ? listeners : {})}
+            {...(isHead ? attributes : {})}
+            onClick={handleClick}
             className="absolute select-none pointer-events-auto"
             style={{
-              transform: `translateY(${segY + (seg.isHead ? 2 : 0)}px) scale(${
+              transform: `translateY(${segY + (isHead ? 2 : 0)}px) scale(${
                 isDragging ? 1.02 : 1
               })`,
               left: 1,
               right: 5,
-              height: segH - (seg.isHead ? 2 : 0),
+              height: segH - (isHead ? 2 : 0),
               backgroundColor: props.item.color,
               cursor: isDragging ? "grabbing" : "pointer",
-              touchAction: isDragging ? "none" : "pan-y",
+              touchAction: "none",
               WebkitTouchCallout: "none",
               zIndex: isDragging ? 10 : "auto",
               boxShadow: isDragging
                 ? "0 6px 14px rgba(0,0,0,0.18)"
                 : undefined,
-              transition: isDragging
-                ? undefined
-                : "box-shadow 120ms ease",
-              borderTopLeftRadius: seg.isHead ? 2 : 0,
-              borderTopRightRadius: seg.isHead ? 2 : 0,
-              borderBottomLeftRadius: !seg.isHead || isOnly ? 2 : 0,
-              borderBottomRightRadius: !seg.isHead || isOnly ? 2 : 0,
+              transition: isDragging ? undefined : "box-shadow 120ms ease",
+              borderTopLeftRadius: isHead ? 2 : 0,
+              borderTopRightRadius: isHead ? 2 : 0,
+              borderBottomLeftRadius: !isHead || isOnly ? 2 : 0,
+              borderBottomRightRadius: !isHead || isOnly ? 2 : 0,
             }}
-            onPointerDown={(e) => onPointerDown(e, seg)}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerCancel}
           >
-            {seg.isHead && (
+            {isHead && (
               <div className="px-2 py-1 flex flex-wrap items-center gap-0.5 overflow-hidden">
                 <div className="text-fore text-sm shrink-0 mr-3">
                   {props.item.name}
@@ -429,7 +361,7 @@ function TimetableItem(props: {
                 </div>
               </div>
             )}
-            {!seg.isHead && segments.length > 1 && (
+            {!isHead && segments.length > 1 && (
               <div className="px-2 py-0.5 text-[10px] text-fore opacity-60">
                 (cont.) {props.item.name}
               </div>
