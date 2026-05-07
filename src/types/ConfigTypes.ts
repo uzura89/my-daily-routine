@@ -1,4 +1,5 @@
 export type TimetableItemType = {
+  id: string;
   name: string;
   memo: string;
   start: string;
@@ -8,10 +9,23 @@ export type TimetableItemType = {
 
 export type TimetableType = TimetableItemType[];
 
+export type SeedTimetableItem = Omit<TimetableItemType, "id">;
+
+export type BoardType = {
+  id: string;
+  name: string;
+  timetable: TimetableType;
+};
+
+export type BoardsStateType = {
+  boards: BoardType[];
+  activeBoardId: string;
+};
+
 export type ConfigType = {
   name: string;
   quotes?: QuoteType[];
-  timetable: TimetableItemType[];
+  timetable: SeedTimetableItem[];
 };
 
 export type QuoteType = {
